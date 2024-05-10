@@ -71,26 +71,29 @@
 	li $t0, 0 # index k
 	li $t1, 0 # index i
 	li $t2, 0 # index j
+
+	## Calculate initial index of matrix y
+	mul $s0, $t0, MATRIX_DIM 
+	add $s0, $s0, $t1
+	mul $s0, $s0, FLOAT_SIZE
+	
+	li $s7, MATRIX_DIM
+	mul $s7, $s7, FLOAT_SIZE   # Calculate index advancing for matrix w
 	
 	loop_k:
-	
+		
 		loop_i:
-			## Calculate index of matrix y
-			mul $s0, $t0, MATRIX_DIM 
-			add $s0, $s0, $t1
-			mul $s0, $s0, FLOAT_SIZE
+			## Calculate initial index of matrix x
+			mul $s1, $t0, MATRIX_DIM
+			add $s1, $s1, $t2
+			mul $s1, $s1, FLOAT_SIZE 
+			
+			## Calculate initial index of matrix w
+			mul $s2, $t2, MATRIX_DIM 
+			add $s2, $s2, $t1
+			mul $s2, $s2, FLOAT_SIZE
 			
 			loop_j:
-				## Calculate index of matrix x
-				mul $s1, $t0, MATRIX_DIM
-				add $s1, $s1, $t2
-				mul $s1, $s1, FLOAT_SIZE  
-				
-				## Calculate index of matrix w
-				mul $s2, $t2, MATRIX_DIM 
-				add $s2, $s2, $t1
-				mul $s2, $s2, FLOAT_SIZE
-				
 				lwc1 $f1, x($s1)  # load data from matrix x
 				lwc1 $f2, w($s2)  # load data from matrix w
 				lwc1 $f0, y($s0)  # load data from matrix y
@@ -101,10 +104,14 @@
 				
 				s.s $f3, y($s0)   # store the result into appropriate matrix y slot
 				
+				add $s1, $s1, FLOAT_SIZE   # Calc next index of matrix x
+				add $s2, $s2, $s7          # Calc next index of matrix w
+				
 				add $t2, $t2, 1                # j = j + 1
 				blt $t2, MATRIX_DIM, loop_j   # loop if j smaller than MATRIX_DIM
 				li $t2, 0                      # if not, reset index j
-				
+			
+			add $s0, $s0, FLOAT_SIZE    # Calc next index of matrix y
 			add $t1, $t1, 1              
 			blt $t1, MATRIX_DIM, loop_i 
 			li $t1, 0
